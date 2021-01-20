@@ -1,0 +1,22 @@
+{
+  "name": "inventory-tracker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@snowpack/plugin-typescript": "^1.1.1",
+    "idb": "^5.0.7",
+    "tsc": "^1.20150623.0",
+    "typescript": "^4.1.2"
+  },
+  "devDependencies": {
+    "snowpack": "^2.17.1",
+    "swc": "^1.0.11"
+  }
+}

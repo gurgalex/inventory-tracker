@@ -1,0 +1,7 @@
+{
+	"mount": {"src": "/"},
+	"devOptions": {
+		"hmr": true
+	},
+	"plugins": ["@snowpack/plugin-typescript"]
+}

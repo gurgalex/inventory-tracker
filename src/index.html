@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!--Set viewport to set how the page will initially be sized on mobile devices-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--Descriptions are used to describe the page for SEO-->
+    <meta name="description" content="A simple way to keep keep inventory of your household items.">
+    <title>Inventory</title>
+
+    <script defer type='module' rel='preload' src="/db.js"</script>
+    <script defer type='module' src='/item.js'></script>
+    <script defer type='module' src='/index.js'></script>
+
+    <style>
+
+        #overview {
+            border-collapse: collapse;
+        }
+
+        #overview td, #overview th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #overview tr:nth-child(even){background-color: lightgrey;}
+
+        #overview tr:hover {background-color: #ddd;}
+
+        #overview th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: green;
+            color: white;
+        }
+
+        .low {
+            background-color: lightpink;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .delete-item-btn {
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+<h1>Inventory Tracker</h1>
+<section id="blank-setup" class="hide">
+<h2>Getting Started</h2>
+    <p>To add your first item, fill out this form below.</p>
+</section>
+
+<!-- Hide this form until an add button is pressed-->
+<form action="#" id="add-item" class="hide">
+    <fieldset>
+        <legend>Add New Item</legend>
+        <ol>
+            <li>
+                <label for="add-name">Name:</label>
+                <input type="text" id="add-name" name="item-name" required autofocus>
+            </li>
+            <li>
+                <label for="add-initial-qty">How many on hand?</label>
+                <input type="number" id="add-initial-qty" name="item-qty" required>
+            </li>
+            <li>
+
+                <label for="add-set-threshold">How many to always have on hand?</label>
+                <input type="number" id="add-set-threshold" name="item-threshold" required>
+            </li>
+            <li>
+                <label for="add-reorder-url">URL for reordering:</label>
+                <input type="url" id="add-reorder-url" name="item-reorder-url">
+            </li>
+            <li class="button">
+                <button type="submit">Add Item</button>
+            </li>
+        </ol>
+    </fieldset>
+
+</form>
+
+<!-- Learning: Custom element tables use `is` to specify that this a type of table.-->
+<div id="overview-main" class="hide">
+<table id="overview" is="item-table">
+    <caption>Current food inventory in house</caption>
+    <button id="add-item-btn">Add Item</button>
+    <thead>
+    <tr>
+        <th scope="col">Item</th>
+        <th scope="col">Qty On hand</th>
+        <th scope="col">Low threshold</th>
+        <th scope="col">Reorder Link</th>
+        <th scope="col">Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+</div>
+
+</body>
+
+</html>
+
+
+
