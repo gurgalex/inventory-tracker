@@ -29,10 +29,10 @@ export const itemDB = new AppDB();
 
 
 class App {
-    private items: Item[];
+    private items: Map<string, Item>;
 
     constructor() {
-        this.items = [];
+        this.items = new Map();
     }
 
     enterInitialLoadState() {
@@ -59,7 +59,7 @@ class App {
     }
 
     addItem(item: Item) {
-        this.items.push(item);
+        this.items.set(item.name, item);
     }
 
 
@@ -74,7 +74,7 @@ class App {
         const url = addData.get("item-reorder-url")
         const item: Item = {name, qty, threshold, url};
         await itemDB.update(item.name, item);
-        this.items.push(item);
+        this.items.set(item.name, item);
     }
 
 
@@ -102,7 +102,7 @@ class App {
         let newTBody = document.createElement('tbody');
         overviewTable.tBodies[0].replaceWith(newTBody)
 
-        if (this.items.length === 0) {
+        if (this.items.size === 0) {
             this.transitionFromNormalToSetup();
         } else {
             this.populateInitialTable();
@@ -213,22 +213,20 @@ class App {
             case 'deleteItem':
                 console.log("Delete item request got");
                 const itemName = e.target.dataset.name;
-                itemDB.remove(e.target.dataset.name).then(res => {
-                    console.log(`Successfully removed item - ${itemName}`);
+                itemDB.remove(e.target.dataset.name).then(() => {
+                    console.debug(`Successfully removed item - ${itemName} from IndexedDB`);
+                    if (this.items.delete(itemName)) {
+                        console.debug(`Removed '${itemName}' from internal app data`);
+                    }
+                    else {
+                        console.error('Item removed from DB was not tracked in App internal items');
+                    }
+                    this.refreshView();
                 })
                     .catch(err => {
-                        console.error(`failed to remove - ${itemName}`);
+                        console.error(`failed to remove '${itemName} - ${err}`);
+                        throw err;
                     });
-                e.target.closest('tr').remove();
-
-                //Note broken remove
-                let removeIndex = this.items.findIndex(item => item.name === itemName);
-                if (removeIndex < 0) {
-                    console.error("item couldn't be removed, not found in items - index < 0");
-                } else {
-                    this.items.splice(removeIndex, 1);
-                }
-                this.refreshView();
                 break;
         }
     }
@@ -236,14 +234,27 @@ class App {
     populateInitialTable() {
         // table body
         let overviewTableBodyRef = overviewTable.getElementsByTagName('tbody')[0];
-        // Populate table based on data we read from database
-        for (const item of this.items) {
+        // Populate table based on data we read from databasefadd
+        for (const item of this.items.values()) {
             // name, qty, threshold, url, actions
             let newRow: HTMLTableRowElement = overviewTableBodyRef.insertRow();
             let itemNameCell = newRow.insertCell();
             itemNameCell.addEventListener('click', this.handleRequestToEditCell);
+            if (item.url === '') {
+                itemNameCell.appendChild(document.createTextNode(item.name));
+            }
+            else {
+                let itemNameLink = document.createElement('a');
+                let reorderText = document.createTextNode(item.name);
+                itemNameLink.appendChild(reorderText);
+                itemNameLink.title = item.name;
+                itemNameLink.href = item.url;
+                itemNameLink.target = "_blank";
+                itemNameLink.rel = "noreferrer noopener";
+                itemNameCell.appendChild(itemNameLink);
 
-            itemNameCell.appendChild(document.createTextNode(item.name));
+            }
+
 
             let qtyCell = newRow.insertCell();
             // Style if below desired threshold
@@ -254,22 +265,6 @@ class App {
 
             let thresholdCell = newRow.insertCell();
             thresholdCell.appendChild(document.createTextNode(item.threshold.toString()));
-
-            let restockUrlCell = newRow.insertCell();
-            if (item.url === '') {
-                let urlFiller = document.createTextNode('No resupply');
-                restockUrlCell.appendChild(urlFiller);
-            } else {
-                let reorderLink = document.createElement('a');
-                const titleText = `Reorder`;
-                let reorderText = document.createTextNode(titleText);
-                reorderLink.appendChild(reorderText);
-                reorderLink.title = titleText;
-                reorderLink.href = item.url;
-                reorderLink.target = "_blank";
-                reorderLink.rel = "noreferrer noopener";
-                restockUrlCell.appendChild(reorderLink);
-            }
 
             let actionCell = newRow.insertCell();
             let btnDelete = document.createElement("BUTTON");
