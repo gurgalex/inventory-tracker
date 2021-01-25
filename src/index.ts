@@ -1,7 +1,6 @@
 'use strict;'
-import {ItemTable} from '/item';
+import {EditCell, Item} from "/item";
 import {AppDB} from "/db";
-import {Item} from "src/item";
 
 // Overview section
 const overviewUI = document.getElementById('overview-main');
@@ -13,9 +12,14 @@ const blankSetup = document.getElementById('blank-setup');
 
 // Add Item form element
 const fAddItem = document.getElementById('add-item');
+// Add Item form btn
+const addItem = document.getElementById("add-item-btn");
 
 export const itemDB = new AppDB();
 
+// Why does making a new instance cause all of the Cells to work?
+// Maybe because 1st instance in file?
+new EditCell();
 
 // Loading State
 
@@ -27,9 +31,12 @@ export const itemDB = new AppDB();
 // Switch to view state with data
 // load initial data
 
+const EDIT_ITEM = "EDIT_ITEM";
+const DELETE_ITEM = "DELETE_ITEM";
 
 class App {
     private items: Map<string, Item>;
+
 
     constructor() {
         this.items = new Map();
@@ -40,6 +47,7 @@ class App {
         // Todo: - Continued - Maybe Templates of Overview to remove OverviewUI and resetup table?.
         // attach button presser for actions on table
         overviewTable.addEventListener('click', (event) => this.handleTableEventClick(event));
+        overviewTable.addEventListener('saveedit', (event) => this.handleTableEventClick(event));
 
         itemDB.getAll().then(res => {
             if (res.length === 0) {
@@ -155,7 +163,6 @@ class App {
     enterNormalState() {
 
         this.populateInitialTable();
-        const addItem = document.getElementById("add-item-btn");
         addItem.addEventListener('click', e => {
             fAddItem.classList.toggle('hide');
             overviewUI.insertBefore(fAddItem, overviewTable);
@@ -198,36 +205,140 @@ class App {
         }, {once: true});
     }
 
+    handleDelete(e) {
+        console.log("Delete item request got");
+        const itemName = e.target.dataset.name;
+        itemDB.remove(e.target.dataset.name).then(() => {
+            console.debug(`Successfully removed item - ${itemName} from IndexedDB`);
+            if (this.items.delete(itemName)) {
+                console.debug(`Removed '${itemName}' from internal app data`);
+            }
+            else {
+                console.error('Item removed from DB was not tracked in App internal items');
+            }
+            this.refreshView();
+        })
+            .catch(err => {
+                console.error(`failed to remove '${itemName} - ${err}`);
+                throw err;
+            });
 
-    handleTableEventClick(e) {
-        console.log("table clicked:");
+    }
+
+    handleEdit(e) {
+        console.log("Got edit request for row");
         console.log(e);
         console.log(e.target);
-        const target = e.target;
+        const itemName = e.target.dataset.name;
+        let trToEdit = e.target.closest('tr');
+        console.log("Table row to edit");
+        console.log(trToEdit);
+        this.switchToEditModeForRow(trToEdit, itemName);
+
+    }
+
+    /**
+     *
+     * @param elemTRow The table row to switch to edit mode
+     */
+    switchToEditModeForRow(elemTRow: HTMLTableRowElement, itemName: string) {
+        let itemNameCell = elemTRow.cells[0];
+        let itemQtyCell = elemTRow.cells[1];
+        let itemThresholdCell = elemTRow.cells[2];
+
+        let item = this.items.get(itemName);
+
+        // Replace with edit cell
+        let editItemNameCell = itemNameCell.cloneNode(false);
+        itemNameCell.parentNode.replaceChild(editItemNameCell, itemNameCell);
+
+
+        let editItemCellTemplate = document.getElementById('edit-cell-name-link-template');
+        let editItemCellContent = editItemCellTemplate.content.cloneNode(true);
+        editItemNameCell.appendChild(editItemCellContent);
+
+        // Once appended, the current reference to the template content is invalid.
+        // Get a new reference
+        let activeEditItemNameContentCell = editItemNameCell.querySelector('edit-cell');
+        activeEditItemNameContentCell.setAttribute('name', item.name);
+        activeEditItemNameContentCell.setAttribute('url', item.url);
+
+        // qty cell edit - create edit cell
+        let editQtyCell = itemQtyCell.cloneNode(false);
+        itemQtyCell.parentNode.replaceChild(editQtyCell, itemQtyCell);
+        let editQtyTemplate = document.getElementById('edit-cell-qty-template');
+        let editQtyContent = editQtyTemplate.content.cloneNode(true);
+        editQtyCell.appendChild(editQtyContent);
+
+        // Once appended, the current reference to the template content is invalid.
+        // Get a new reference
+        let activeEditQtyCell = editQtyCell.querySelector('edit-cell');
+        activeEditQtyCell.setAttribute('qty', item.qty);
+
+        // Create edit threshold cell
+        let editThresholdCell = itemThresholdCell.cloneNode(false);
+        itemThresholdCell.parentNode.replaceChild(editThresholdCell, itemThresholdCell);
+        let editThresholdTemplate = document.getElementById('edit-cell-threshold-template');
+        let editThresholdContent = editThresholdTemplate.content.cloneNode(true);
+        editThresholdCell.appendChild(editThresholdContent);
+
+        // Once appended, the current reference to the template content is invalid.
+        // Get a new reference
+        let activeEditThresholdCell = editThresholdCell.querySelector('edit-cell');
+        activeEditThresholdCell.setAttribute('threshold', item.threshold);
+
+    }
+
+    handleEvent(ev) {
+        console.log(ev);
+    }
+
+
+    handleTableEventClick(e) {
+        console.log(e.type);
+        console.log(e.target);
         // Which actionType to perform?
         // switch dataset?
         console.log(e.target.dataset);
-        console.log(e.target.dataset.actionType);
+
+        if (e.type == 'saveedit') {
+            console.log("got save edit event to handle");
+            console.log(e.detail);
+            console.log(`closest tr: ${e.target.closest("tr")}`);
+            console.log(`item orig name from tr: ${e.target.closest("tr").dataset.name}`);
+            let origItemName = e.target.closest("tr").dataset.name;
+
+            // Get original contents
+            const origItem = this.items.get(origItemName);
+            console.log(`Original Item: ${JSON.stringify(origItem)}`);
+
+            // Merge changes
+            console.log(e.detail.changes);
+            let editedItem = {...origItem, ...e.detail.changes};
+            console.log(`edited update item: ${JSON.stringify(editedItem)}`);
+            this.items.set(editedItem.name, editedItem);
+            itemDB.update(origItem.name, editedItem);
+
+            // Need to remove the old item name if it changed. Replace with edited name
+            if (editedItem.name !== origItem.name) {
+                this.items.delete(origItemName);
+            }
+            this.refreshView();
+        }
+
 
         switch (e.target.dataset.actionType) {
-            case 'deleteItem':
-                console.log("Delete item request got");
-                const itemName = e.target.dataset.name;
-                itemDB.remove(e.target.dataset.name).then(() => {
-                    console.debug(`Successfully removed item - ${itemName} from IndexedDB`);
-                    if (this.items.delete(itemName)) {
-                        console.debug(`Removed '${itemName}' from internal app data`);
-                    }
-                    else {
-                        console.error('Item removed from DB was not tracked in App internal items');
-                    }
-                    this.refreshView();
-                })
-                    .catch(err => {
-                        console.error(`failed to remove '${itemName} - ${err}`);
-                        throw err;
-                    });
+            case DELETE_ITEM:
+                this.handleDelete(e)
                 break;
+            case EDIT_ITEM: {
+                this.handleEdit(e);
+                break;
+            }
+            case 'save-item': {
+                console.log("got save edit request");
+                this.handeSaveEdit(e);
+            }
         }
     }
 
@@ -238,6 +349,8 @@ class App {
         for (const item of this.items.values()) {
             // name, qty, threshold, url, actions
             let newRow: HTMLTableRowElement = overviewTableBodyRef.insertRow();
+            // Have each row say which item name it has info on
+            newRow.setAttribute('data-name', item.name);
             let itemNameCell = newRow.insertCell();
             itemNameCell.addEventListener('click', this.handleRequestToEditCell);
             if (item.url === '') {
@@ -267,11 +380,17 @@ class App {
             thresholdCell.appendChild(document.createTextNode(item.threshold.toString()));
 
             let actionCell = newRow.insertCell();
+            let btnEdit = document.createElement("BUTTON");
+            btnEdit.textContent = "Edit";
+            actionCell.appendChild(btnEdit);
+            btnEdit.setAttribute('data-action-type', EDIT_ITEM);
+            btnEdit.setAttribute('data-name', item.name);
+
             let btnDelete = document.createElement("BUTTON");
             btnDelete.textContent = 'Delete';
 
             // Say which action the button will perform for event handling
-            btnDelete.setAttribute('data-action-type', 'deleteItem');
+            btnDelete.setAttribute('data-action-type', DELETE_ITEM);
             // Fast way to delete row without querying row in table for item name
             btnDelete.setAttribute('data-name', item.name);
             actionCell.appendChild(btnDelete);

@@ -43,9 +43,7 @@
             display: none;
         }
 
-        .delete-item-btn {
 
-        }
 
     </style>
 
@@ -90,7 +88,7 @@
 </form>
 
 <!-- Learning: Custom element tables use `is` to specify that this a type of table.-->
-<div id="overview-main" class="hide">
+<main id="overview-main" class="hide">
 <table id="overview" is="item-table">
     <caption>Current food inventory in house</caption>
     <button id="add-item-btn">Add Item</button>
@@ -105,11 +103,55 @@
     <tbody>
     </tbody>
 </table>
-</div>
+</main>
+
+<template id="edit-cell-template">
+    <style>
+        :host input {
+            display:block;
+        }
+        :host label {
+            margin: 0.5em;
+        }
+        :host button {
+            background-color: lightgreen;
+            margin: 0.5em;
+            margin-right: 0;
+            padding: 0.2em 0.5em 0.2em 0.5em;
+            float: right;
+        }
+    </style>
+
+    <slot name="field"></slot>
+    <button data-action-type="save-edit" class="save-edit-btn">Save</button>
+    <button data-action-type="cancel-edit" class="cancel-edit-btn">Cancel</button>
+</template>
+
+<template id="edit-cell-name-link-template">
+    <edit-cell>
+        <label slot="field">name:
+            <input data-field="name" required>
+        </label>
+        <label slot="field">Reorder URL:<input data-field="url" type="url"></label>
+    </edit-cell>
+</template>
+
+
+<template id="edit-cell-qty-template">
+    <edit-cell>
+        <label slot="field">Qty:
+            <input data-field="qty" min="0" type="number">
+        </label>
+    </edit-cell>
+</template>
+
+<template id="edit-cell-threshold-template">
+<edit-cell>
+    <label slot="field">low:
+        <input data-field="threshold" min="0" type="number">
+    </label>
+</edit-cell>
+</template>
 
 </body>
-
 </html>
-
-
-
