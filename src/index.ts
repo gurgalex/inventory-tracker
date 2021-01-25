@@ -149,6 +149,9 @@ class App {
         fAddItem.addEventListener('formdata', (e) => this.handleAddItemFormData(e), {once: true});
 
         blankSetup.appendChild(fAddItem);
+        // focus the 1st field of the form
+        fAddItem.querySelector('#add-name').focus();
+        console.log("show form");
     }
 
     transitionFromSetupToNormal() {
@@ -166,6 +169,9 @@ class App {
         addItem.addEventListener('click', e => {
             fAddItem.classList.toggle('hide');
             overviewUI.insertBefore(fAddItem, overviewTable);
+            // focus the name
+            fAddItem.querySelector("#add-name").focus();
+
             // read event listener
             fAddItem.addEventListener('submit', e => {
                 e.preventDefault();
@@ -189,6 +195,10 @@ class App {
         blankSetup.classList.remove('hide');
         fAddItem.classList.remove('hide');
         blankSetup.appendChild(fAddItem);
+
+        // focus form name
+        fAddItem.querySelector('#add-name').focus();
+
         // Setup form submission handling
         fAddItem.addEventListener('submit', e => {
             e.preventDefault();
