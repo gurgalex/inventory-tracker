@@ -43,12 +43,25 @@
             display: none;
         }
 
+        main {
+            max-width: 100%;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
 
+        table {
+            height: auto;
+        }
 
+        edit-cell div {
+            margin: 0.75em 0;
+        }
+        edit-cell div input {
+            display: block;
+        }
     </style>
 
 </head>
-
 
 <body>
 <h1>Inventory Tracker</h1>
@@ -87,7 +100,6 @@
 
 </form>
 
-<!-- Learning: Custom element tables use `is` to specify that this a type of table.-->
 <main id="overview-main" class="hide">
 <table id="overview" is="item-table">
     <caption>Current food inventory in house</caption>
@@ -108,17 +120,24 @@
 <template id="edit-cell-template">
     <style>
         :host input {
-            display:block;
+            margin: 1em;
+            padding: 1em;
+
         }
         :host label {
-            margin: 0.5em;
+            margin: 1em;
+            padding: 1em;
         }
+
+        :host .edit-field {
+            display:block;
+            clear: right; /* No elements to right */
+        }
+
         :host button {
             background-color: lightgreen;
-            margin: 0.5em;
-            margin-right: 0;
+            margin-right: 0.5em;
             padding: 0.2em 0.5em 0.2em 0.5em;
-            float: right;
         }
     </style>
 
@@ -129,27 +148,35 @@
 
 <template id="edit-cell-name-link-template">
     <edit-cell>
-        <label slot="field">name:
+        <div class="edit-field" slot="field">
+        <label>Name:
             <input data-field="name" required>
         </label>
-        <label slot="field">Reorder URL:<input data-field="url" type="url"></label>
+        </div>
+        <div class="edit-field" slot="field">
+        <label>Reorder URL:<input data-field="url" type="url">
+        </label>
+        </div>
     </edit-cell>
 </template>
 
-
 <template id="edit-cell-qty-template">
     <edit-cell>
+        <div class="edit-field" slot="field">
         <label slot="field">Qty:
             <input data-field="qty" min="0" type="number">
         </label>
+        </div>
     </edit-cell>
 </template>
 
 <template id="edit-cell-threshold-template">
 <edit-cell>
-    <label slot="field">low:
+    <div class="edit-field" slot="field">
+    <label slot="field">Low:
         <input data-field="threshold" min="0" type="number">
     </label>
+    </div>
 </edit-cell>
 </template>
 
