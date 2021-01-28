@@ -15,6 +15,11 @@ const fAddItem = document.getElementById('add-item');
 // Add Item form btn
 const addItem = document.getElementById("add-item-btn");
 
+// save DB to file button
+const saveDBToFileBtn = document.getElementById('export-data-btn');
+// import DB from saved file
+const loadDBFromFileBtn = document.getElementById('import-data-btn');
+
 export const itemDB = new AppDB();
 
 // Why does making a new instance cause all of the Cells to work?
@@ -184,6 +189,44 @@ class App {
 
         // show overview table
         overviewUI.classList.remove('hide');
+
+        // add event listener for export button
+        saveDBToFileBtn.addEventListener('click', () => this.exportDataToFile());
+    }
+
+    exportDataToFile() {
+        console.log("export button pressed");
+        let exportedData = JSON.stringify([...this.items], null, 2);
+
+        // Need data to be a sequence [] + a blob
+        let blob = new Blob([exportedData], {type: "application/json"});
+
+        // Adapted from LogRocket blog post for downloading blobs
+        // link: https://blog.logrocket.com/programmatic-file-downloads-in-the-browser-9a5186298d5c/
+
+        // Further adaptation - getting download to work without click handler
+        // link: https://yon.fun/download-file-js/
+
+        // Create an object URL for the blob object
+        let url = URL.createObjectURL(blob);
+
+        // Create a new anchor element to later click and store the download link
+        const link = document.createElement('a');
+
+        // Set the href and download attributes for the anchor element
+        // You can optionally set other attributes like `title`, etc
+        // Especially, if the anchor element will be attached to the DOM
+        link.href = url;
+        link.download = "items.json";
+
+        // Programmatically trigger a click on the anchor element
+        // Useful if you want the download to happen automatically
+        // Without attaching the anchor element to the DOM
+        link.click();
+
+        // Free the url resource (and blob memory?)
+        URL.revokeObjectURL(url);
+        // -- end adaptation
     }
 
     transitionFromNormalToSetup() {
