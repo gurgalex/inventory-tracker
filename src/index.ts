@@ -250,6 +250,7 @@ class App {
     /**
      *
      * @param elemTRow The table row to switch to edit mode
+     * @param itemName Item name used to identify the row
      */
     switchToEditModeForRow(elemTRow: HTMLTableRowElement, itemName: string) {
         let itemNameCell = elemTRow.cells[0];
@@ -258,49 +259,44 @@ class App {
 
         let item = this.items.get(itemName);
 
-        // Replace with edit cell
-        let editItemNameCell = itemNameCell.cloneNode(false);
-        itemNameCell.parentNode.replaceChild(editItemNameCell, itemNameCell);
+        this.switchCellToEditMode(itemNameCell,
+            'edit-cell-name-link-template',
+            new Map(Object.entries({name: item.name, url: item.url})));
 
-
-        let editItemCellTemplate = document.getElementById('edit-cell-name-link-template');
-        let editItemCellContent = editItemCellTemplate.content.cloneNode(true);
-        editItemNameCell.appendChild(editItemCellContent);
-
-        // Once appended, the current reference to the template content is invalid.
-        // Get a new reference
-        let activeEditItemNameContentCell = editItemNameCell.querySelector('edit-cell');
-        activeEditItemNameContentCell.setAttribute('name', item.name);
-        activeEditItemNameContentCell.setAttribute('url', item.url);
 
         // qty cell edit - create edit cell
-        let editQtyCell = itemQtyCell.cloneNode(false);
-        itemQtyCell.parentNode.replaceChild(editQtyCell, itemQtyCell);
-        let editQtyTemplate = document.getElementById('edit-cell-qty-template');
-        let editQtyContent = editQtyTemplate.content.cloneNode(true);
-        editQtyCell.appendChild(editQtyContent);
+        this.switchCellToEditMode(itemQtyCell,
+            'edit-cell-qty-template',
+            new Map(Object.entries({qty: item.qty})));
 
-        // Once appended, the current reference to the template content is invalid.
-        // Get a new reference
-        let activeEditQtyCell = editQtyCell.querySelector('edit-cell');
-        activeEditQtyCell.setAttribute('qty', item.qty);
 
-        // Create edit threshold cell
-        let editThresholdCell = itemThresholdCell.cloneNode(false);
-        itemThresholdCell.parentNode.replaceChild(editThresholdCell, itemThresholdCell);
-        let editThresholdTemplate = document.getElementById('edit-cell-threshold-template');
-        let editThresholdContent = editThresholdTemplate.content.cloneNode(true);
-        editThresholdCell.appendChild(editThresholdContent);
-
-        // Once appended, the current reference to the template content is invalid.
-        // Get a new reference
-        let activeEditThresholdCell = editThresholdCell.querySelector('edit-cell');
-        activeEditThresholdCell.setAttribute('threshold', item.threshold);
-
+        this.switchCellToEditMode(itemThresholdCell,
+            'edit-cell-threshold-template',
+            new Map(Object.entries({threshold: item.threshold})));
     }
 
-    handleEvent(ev) {
-        console.log(ev);
+    /**
+     * @param tCellElem the table cell element ref to switch into editing mode
+     * @param template HTML document id of the template for the edit cell
+     * @param data Object Where key = field editing, and value = value of current field
+
+     **/
+    switchCellToEditMode(tCellElem: HTMLTableCellElement, template: string, data: Map<string, any>) {
+        // Replace with edit cell
+        let editCell = tCellElem.cloneNode(false);
+        tCellElem.parentNode.replaceChild(editCell, tCellElem);
+
+
+        let editCellTemplate = document.getElementById(template);
+        let editCellTemplateContent = editCellTemplate.content.cloneNode(true);
+        editCell.appendChild(editCellTemplateContent);
+
+        // Once appended, the current reference to the template content is invalid.
+        // Get a new reference
+        let activeEditContentCell = editCell.querySelector('edit-cell');
+        for (const [fieldName, value] of data.entries()) {
+            activeEditContentCell.setAttribute(fieldName, value);
+        }
     }
 
 
