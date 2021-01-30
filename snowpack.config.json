@@ -1,6 +1,0 @@
-{
-	"mount": {"src": "/"},
-	"devOptions": {
-		"hmr": true
-	}
-}
