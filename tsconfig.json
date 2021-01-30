@@ -4,9 +4,11 @@
   "noImplicitReturns": true,
   "strict": true,
     "baseUrl": ".",
-    "target": "ES2020",
+    "target": "ESNext",
+    "module": "ESNext",
     "paths": {
-      "src/*": ["src/*"]
+      "*": [".snowpack/types/*"],
+      "/": ["src/*"]
     }
 }
 }

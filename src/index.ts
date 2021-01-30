@@ -1,6 +1,6 @@
 'use strict;'
-import {EditCell, Item} from "/item";
-import {AppDB} from "/db";
+import {EditCell, Item} from "/item.js";
+import {AppDB} from "/appdb.js";
 
 // Overview section
 const overviewUI = document.getElementById('overview-main');
