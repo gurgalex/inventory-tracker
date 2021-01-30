@@ -226,6 +226,7 @@ class App {
         // input element has files property
         if (e.target.files.length === 0) {
             console.log("File selection cancelled");
+            return;
         }
         let files: FileList = e.target.files;
         let file = files[0];
