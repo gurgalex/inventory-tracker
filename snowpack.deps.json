@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "idb": "^6.0.0"
+  },
+  "lock": {
+    "idb#^6.0.0": "idb@v6.0.0-oGEqxRHajJCcrIcxVYZ0"
+  }
+}
