@@ -104,4 +104,27 @@ export class AppDB {
         }
 
     }
+
+    /** Clears all content from application (item store) **/
+    async clear() {
+        const db = await this._openDB();
+        let tx = db.transaction(this.STORE_NAME, 'readwrite');
+        let store = tx.objectStore(this.STORE_NAME);
+        try {
+            await store.clear();
+        }
+        catch(err) {
+            console.log("error clearing item store");
+            console.log(err);
+            tx.abort();
+        }
+    }
+
+    /** Add an Item to the DB */
+    async addItem(item: Item) {
+        const db = await this._openDB();
+        let tx = db.transaction(this.STORE_NAME, 'readwrite');
+        let store = tx.objectStore(this.STORE_NAME);
+        await store.add(item);
+    }
 }

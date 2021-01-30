@@ -19,6 +19,8 @@ const addItem = document.getElementById("add-item-btn");
 const saveDBToFileBtn = document.getElementById('export-data-btn');
 // import DB from saved file
 const loadDBFromFileBtn = document.getElementById('import-data-btn');
+// setup screen - Load data from file button
+const loadDBFromFileSetupBtn = document.getElementById('import-data-btn-setup');
 
 export const itemDB = new AppDB();
 
@@ -101,7 +103,6 @@ class App {
             fAddItem.classList.add('hide');
             // refresh Overview table contents
             this.refreshView();
-
         }).catch(err => {
             console.error(`failed to add item to DB, ${e}`);
         })
@@ -141,7 +142,12 @@ class App {
     // Transitions to and from states
     // States
     loadBlankState() {
+        // Make Setup screen visible
         blankSetup.classList.remove('hide');
+
+        // Setup the load existing data button
+        loadDBFromFileSetupBtn.addEventListener('change', this.loadDataHandler.bind(this));
+
         // Make form visible
         fAddItem.classList.remove('hide');
 
@@ -161,7 +167,7 @@ class App {
 
     transitionFromSetupToNormal() {
         // hide add item form
-        console.log('entered transition normal -> setup fn');
+        console.log('entered transition Setup -> Normal fn');
         console.log(fAddItem);
         blankSetup.classList.add('hide');
 
@@ -190,8 +196,51 @@ class App {
         // show overview table
         overviewUI.classList.remove('hide');
 
+        loadDBFromFileBtn.addEventListener('change', this.loadDataHandler.bind(this));
+
+
         // add event listener for export button
         saveDBToFileBtn.addEventListener('click', () => this.exportDataToFile());
+    }
+
+    replaceAppData(newData: Map<string, string>) {
+        // replace database contents
+        this.items = newData;
+        itemDB.clear().then(res => {
+            for (const item of this.items.values()) {
+                itemDB.addItem(item);
+            }
+            console.log("DB updated with replacement file");
+        });
+
+    }
+
+    importDataFromFile(e) {
+        console.log("file import button changed normal mode");
+        console.log(e)
+        // Todo: Finish import functionality
+
+
+        // open file as blob
+
+        // input element has files property
+        if (e.target.files.length === 0) {
+            console.log("File selection cancelled");
+        }
+        let files: FileList = e.target.files;
+        let file = files[0];
+        let reader = new FileReader();
+        reader.addEventListener('load', e  => {
+            // read the file data
+            let parsedData = JSON.parse(e.target.result);
+            // create map and replace items
+            let newAppData = new Map([...parsedData]);
+
+            this.replaceAppData(newAppData);
+            this.refreshView();
+        }, {once: true});
+        reader.readAsText(file);
+
     }
 
     exportDataToFile() {
@@ -229,6 +278,14 @@ class App {
         // -- end adaptation
     }
 
+    loadDataHandler(e) {
+        this.importDataFromFile(e);
+        e.currentTarget.removeEventListener('change', this.loadDataHandler);
+        // reset file handler for importing more files of same name
+        e.target.value = '';
+        this.transitionFromSetupToNormal();
+    }
+
     transitionFromNormalToSetup() {
         console.log("Normal -> Setup transition");
         // Hide table since 0 items
@@ -238,6 +295,9 @@ class App {
         blankSetup.classList.remove('hide');
         fAddItem.classList.remove('hide');
         blankSetup.appendChild(fAddItem);
+
+        // show load data button
+        loadDBFromFileSetupBtn.addEventListener('change', this.loadDataHandler.bind(this));
 
         // focus form name
         fAddItem.querySelector('#add-name').focus();
@@ -254,7 +314,6 @@ class App {
 
             blankSetup.classList.add('hide');
             fAddItem.classList.remove('hide');
-            //blankSetup.appendChild(fAddItem);
         }, {once: true});
     }
 
