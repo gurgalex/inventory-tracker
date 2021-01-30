@@ -8,9 +8,9 @@
     <meta name="description" content="A simple way to keep keep inventory of your household items.">
     <title>Inventory</title>
 
-    <script defer type='module' rel='preload' src="/db.js"</script>
-    <script defer type='module' src='/item.js'></script>
-    <script defer type='module' src='/index.js'></script>
+    <script type='module' rel='preload' src="/db.js"></script>
+    <script type='module' src='/item.js'></script>
+    <script type='module' src='/index.js'></script>
 
     <style>
 
@@ -104,16 +104,17 @@
 </form>
 
 <main id="overview-main" class="hide">
-    <section id="load-save">
+    <div id="load-save">
     <label for="import-data-btn">Load from File</label>
     <input type="file" id="import-data-btn" name="file">
         <br><br>
     <button id="export-data-btn">Save to File</button>
-    </section>
+    </div>
     <br><br>
+
+    <button id="add-item-btn">Add Item</button>
 <table id="overview" is="item-table">
     <caption>Current food inventory in house</caption>
-    <button id="add-item-btn">Add Item</button>
     <thead>
     <tr>
         <th scope="col">Item</th>
