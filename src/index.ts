@@ -231,7 +231,7 @@ class App {
         let files: FileList = e.target.files;
         let file = files[0];
         let reader = new FileReader();
-        reader.addEventListener('load', e  => {
+        reader.addEventListener('load', e => {
             // read the file data
             let parsedData = JSON.parse(e.target.result);
             // create map and replace items
@@ -325,8 +325,7 @@ class App {
             console.debug(`Successfully removed item - ${itemName} from IndexedDB`);
             if (this.items.delete(itemName)) {
                 console.debug(`Removed '${itemName}' from internal app data`);
-            }
-            else {
+            } else {
                 console.error('Item removed from DB was not tracked in App internal items');
             }
             this.refreshView();
@@ -464,8 +463,7 @@ class App {
             itemNameCell.addEventListener('click', this.handleRequestToEditCell);
             if (item.url === '') {
                 itemNameCell.appendChild(document.createTextNode(item.name));
-            }
-            else {
+            } else {
                 let itemNameLink = document.createElement('a');
                 let reorderText = document.createTextNode(item.name);
                 itemNameLink.appendChild(reorderText);

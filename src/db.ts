@@ -80,8 +80,7 @@ export class AppDB {
         // Todo: Error handling
         try {
             await store.add(updatedItem)
-        }
-        catch (err) {
+        } catch (err) {
             console.log(err);
             console.log(key);
             tx.abort();
@@ -95,8 +94,7 @@ export class AppDB {
 
         try {
             await store.delete(name);
-        }
-        catch (err) {
+        } catch (err) {
             console.log(err);
             console.log(name);
             tx.abort();
@@ -112,8 +110,7 @@ export class AppDB {
         let store = tx.objectStore(this.STORE_NAME);
         try {
             await store.clear();
-        }
-        catch(err) {
+        } catch (err) {
             console.log("error clearing item store");
             console.log(err);
             tx.abort();

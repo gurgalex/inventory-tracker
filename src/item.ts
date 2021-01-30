@@ -10,7 +10,9 @@ export class saveEdit extends Event {
 
 
 export class EditCell extends HTMLElement {
-    static get observedAttributes() {return ['name', 'url', 'qty', 'threshold'];}
+    static get observedAttributes() {
+        return ['name', 'url', 'qty', 'threshold'];
+    }
 
     constructor() {
         super()
@@ -39,17 +41,16 @@ export class EditCell extends HTMLElement {
 
 
             let eventEdit = new CustomEvent('saveedit',
-                {bubbles: true, composed: true,
+                {
+                    bubbles: true, composed: true,
                     detail: {changes: changes},
                 });
             ev.target.dispatchEvent(eventEdit);
             console.log(`dispatched event ${eventEdit}`);
             return;
-        }
-        else if (ev.target.classList.contains('cancel-edit-btn')) {
+        } else if (ev.target.classList.contains('cancel-edit-btn')) {
             console.log("cancel btn pressed");
-        }
-        else {
+        } else {
             switch (ev.type) {
                 case 'keydown':
                     console.log('keydown event for edit field');
