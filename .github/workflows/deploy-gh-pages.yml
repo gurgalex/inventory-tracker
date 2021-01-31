@@ -28,10 +28,7 @@ jobs:
             node-version: "14"
       - run: "npm install snowpack"
       - run: "npm install typescript"
-
-      # Runs a single command using the runners shell
-      - name: "Build website"
-        run: "snowpack build"
+      - run: "snowpack build"
       
       - name: Deploy
         uses: "peaceiris/actions-gh-pages@v3"
