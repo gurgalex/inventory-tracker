@@ -16,6 +16,7 @@ module.exports = {
     /* ... */
   },
   buildOptions: {
-    /* ... */
+	  /** In your HTML, replace all instances of / with this */
+	  baseUrl: "/inventory-tracker/",
   },
 };
