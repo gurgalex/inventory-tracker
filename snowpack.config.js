@@ -7,7 +7,6 @@ module.exports = {
 	  src: "/",
   },
   plugins: [
-	  '@snowpack/plugin-typescript',
   ],
   packageOptions: {
 	  "source": "remote",
