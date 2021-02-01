@@ -28,18 +28,11 @@ export const itemDB = new AppDB();
 // Maybe because 1st instance in file?
 new EditCell();
 
-// Loading State
-
-// Show Greeting + instructions
-// Hide empty table
-// Show add item form
-
-
-// Switch to view state with data
-// load initial data
 
 const EDIT_ITEM = "EDIT_ITEM";
 const DELETE_ITEM = "DELETE_ITEM";
+
+const CANCEL_EDIT = 'cancel-edit';
 
 class App {
     private items: Map<string, Item>;
@@ -50,11 +43,10 @@ class App {
     }
 
     enterInitialLoadState() {
-        // Todo: Bug - Figure out how to only add event listerns once regardless of which state Normal mode is entered from
-        // Todo: - Continued - Maybe Templates of Overview to remove OverviewUI and resetup table?.
-        // attach button presser for actions on table
         overviewTable.addEventListener('click', (event) => this.handleTableEventClick(event));
-        overviewTable.addEventListener('saveedit', (event) => this.handleTableEventClick(event));
+        overviewTable.addEventListener('save-edit', this);
+        overviewTable.addEventListener('cancel-edit', this);
+
 
         itemDB.getAll().then(res => {
             if (res.length === 0) {
@@ -109,14 +101,15 @@ class App {
     }
 
     /**
-     * Refresh the table of the overview UI
+     * Refresh the UI of the whole app based off number of items tracked
      */
     refreshView() {
         // prepare new table body
         let newTBody = document.createElement('tbody');
         overviewTable.tBodies[0].replaceWith(newTBody)
 
-        if (this.items.size === 0) {
+        const zeroItems = this.items.size === 0;
+        if (zeroItems) {
             this.transitionFromNormalToSetup();
         } else {
             this.populateInitialTable();
@@ -138,9 +131,6 @@ class App {
         });
     }
 
-
-    // Transitions to and from states
-    // States
     loadBlankState() {
         // Make Setup screen visible
         blankSetup.classList.remove('hide');
@@ -175,7 +165,6 @@ class App {
     }
 
     enterNormalState() {
-
         this.populateInitialTable();
         addItem.addEventListener('click', e => {
             fAddItem.classList.toggle('hide');
@@ -218,12 +207,8 @@ class App {
     importDataFromFile(e) {
         console.log("file import button changed normal mode");
         console.log(e)
-        // Todo: Finish import functionality
 
-
-        // open file as blob
-
-        // input element has files property
+        // input element has files selected
         if (e.target.files.length === 0) {
             console.log("File selection cancelled");
             return;
@@ -399,41 +384,53 @@ class App {
         for (const [fieldName, value] of data.entries()) {
             activeEditContentCell.setAttribute(fieldName, value);
         }
+
+        //
+
     }
 
+    handleSaveEdit(e) {
+        console.log("got save edit event to handle");
+        console.log(e.detail);
+        console.log(`closest tr: ${e.target.closest("tr")}`);
+        console.log(`item orig name from tr: ${e.target.closest("tr").dataset.name}`);
+        let origItemName = e.target.closest("tr").dataset.name;
 
-    handleTableEventClick(e) {
-        console.log(e.type);
-        console.log(e.target);
-        // Which actionType to perform?
-        // switch dataset?
-        console.log(e.target.dataset);
+        // Get original contents
+        const origItem = this.items.get(origItemName);
+        console.log(`Original Item: ${JSON.stringify(origItem)}`);
 
-        if (e.type == 'saveedit') {
-            console.log("got save edit event to handle");
-            console.log(e.detail);
-            console.log(`closest tr: ${e.target.closest("tr")}`);
-            console.log(`item orig name from tr: ${e.target.closest("tr").dataset.name}`);
-            let origItemName = e.target.closest("tr").dataset.name;
+        // Merge changes
+        console.log(e.detail.changes);
+        let editedItem = {...origItem, ...e.detail.changes};
+        console.log(`edited update item: ${JSON.stringify(editedItem)}`);
+        this.items.set(editedItem.name, editedItem);
+        itemDB.update(origItem.name, editedItem);
 
-            // Get original contents
-            const origItem = this.items.get(origItemName);
-            console.log(`Original Item: ${JSON.stringify(origItem)}`);
+        // Need to remove the old item name if it changed. Replace with edited name
+        if (editedItem.name !== origItem.name) {
+            this.items.delete(origItemName);
+        }
+        this.refreshView();
+    }
 
-            // Merge changes
-            console.log(e.detail.changes);
-            let editedItem = {...origItem, ...e.detail.changes};
-            console.log(`edited update item: ${JSON.stringify(editedItem)}`);
-            this.items.set(editedItem.name, editedItem);
-            itemDB.update(origItem.name, editedItem);
-
-            // Need to remove the old item name if it changed. Replace with edited name
-            if (editedItem.name !== origItem.name) {
-                this.items.delete(origItemName);
-            }
+    handleEvent(e) {
+        console.log("got event type");
+        console.log(e.type)
+        if (e.type == 'save-edit') {
+            this.handleSaveEdit(e);
+        }
+        else if (e.type == 'cancel-edit') {
+            console.log("handling cancel edit request event");
             this.refreshView();
         }
+    }
 
+    handleTableEventClick(e) {
+        console.log("table click event got")
+        console.log(`event type: ${e.type}`);
+        console.log("event target:");
+        console.log(e.target);
 
         switch (e.target.dataset.actionType) {
             case DELETE_ITEM:
@@ -442,10 +439,6 @@ class App {
             case EDIT_ITEM: {
                 this.handleEdit(e);
                 break;
-            }
-            case 'save-item': {
-                console.log("got save edit request");
-                this.handeSaveEdit(e);
             }
         }
     }

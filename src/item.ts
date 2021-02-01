@@ -1,14 +1,3 @@
-export class saveEdit extends Event {
-    constructor(itemChanges) {
-        super('saveedit', {
-            bubbles: true,
-            composed: true,
-        });
-        this.itemChanges = itemChanges;
-    }
-}
-
-
 export class EditCell extends HTMLElement {
     static get observedAttributes() {
         return ['name', 'url', 'qty', 'threshold'];
@@ -27,6 +16,10 @@ export class EditCell extends HTMLElement {
         return this.shadowRoot.querySelector('.save-edit-btn');
     }
 
+    get cancelBtn() {
+        return this.shadowRoot.querySelector('.cancel-edit-btn');
+    }
+
     handleEvent(ev) {
         console.log(ev.type);
 
@@ -40,7 +33,7 @@ export class EditCell extends HTMLElement {
             }
 
 
-            let eventEdit = new CustomEvent('saveedit',
+            let eventEdit = new CustomEvent('save-edit',
                 {
                     bubbles: true, composed: true,
                     detail: {changes: changes},
@@ -50,6 +43,9 @@ export class EditCell extends HTMLElement {
             return;
         } else if (ev.target.classList.contains('cancel-edit-btn')) {
             console.log("cancel btn pressed");
+            let cancelEvent = new Event('cancel-edit', {bubbles: true, composed: true})
+            ev.target.dispatchEvent(cancelEvent);
+            return;
         } else {
             switch (ev.type) {
                 case 'keydown':
@@ -77,6 +73,7 @@ export class EditCell extends HTMLElement {
     connectedCallback() {
         console.log('Custom generic EditCell element added to page');
         this.saveBtn.addEventListener('click', this);
+        this.cancelBtn.addEventListener('click', this);
     }
 
     disconnectedCallback() {
