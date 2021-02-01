@@ -13,13 +13,15 @@ export const itemDB = new AppDB();
 new EditCell();
 const EDIT_ITEM = "EDIT_ITEM";
 const DELETE_ITEM = "DELETE_ITEM";
+const CANCEL_EDIT = "cancel-edit";
 class App {
   constructor() {
     this.items = new Map();
   }
   enterInitialLoadState() {
     overviewTable.addEventListener("click", (event) => this.handleTableEventClick(event));
-    overviewTable.addEventListener("saveedit", (event) => this.handleTableEventClick(event));
+    overviewTable.addEventListener("save-edit", this);
+    overviewTable.addEventListener("cancel-edit", this);
     itemDB.getAll().then((res) => {
       if (res.length === 0) {
         console.log("No items added yet");
@@ -64,7 +66,8 @@ class App {
   refreshView() {
     let newTBody = document.createElement("tbody");
     overviewTable.tBodies[0].replaceWith(newTBody);
-    if (this.items.size === 0) {
+    const zeroItems = this.items.size === 0;
+    if (zeroItems) {
       this.transitionFromNormalToSetup();
     } else {
       this.populateInitialTable();
@@ -226,28 +229,39 @@ class App {
       activeEditContentCell.setAttribute(fieldName, value);
     }
   }
-  handleTableEventClick(e) {
+  handleSaveEdit(e) {
+    console.log("got save edit event to handle");
+    console.log(e.detail);
+    console.log(`closest tr: ${e.target.closest("tr")}`);
+    console.log(`item orig name from tr: ${e.target.closest("tr").dataset.name}`);
+    let origItemName = e.target.closest("tr").dataset.name;
+    const origItem = this.items.get(origItemName);
+    console.log(`Original Item: ${JSON.stringify(origItem)}`);
+    console.log(e.detail.changes);
+    let editedItem = {...origItem, ...e.detail.changes};
+    console.log(`edited update item: ${JSON.stringify(editedItem)}`);
+    this.items.set(editedItem.name, editedItem);
+    itemDB.update(origItem.name, editedItem);
+    if (editedItem.name !== origItem.name) {
+      this.items.delete(origItemName);
+    }
+    this.refreshView();
+  }
+  handleEvent(e) {
+    console.log("got event type");
     console.log(e.type);
-    console.log(e.target);
-    console.log(e.target.dataset);
-    if (e.type == "saveedit") {
-      console.log("got save edit event to handle");
-      console.log(e.detail);
-      console.log(`closest tr: ${e.target.closest("tr")}`);
-      console.log(`item orig name from tr: ${e.target.closest("tr").dataset.name}`);
-      let origItemName = e.target.closest("tr").dataset.name;
-      const origItem = this.items.get(origItemName);
-      console.log(`Original Item: ${JSON.stringify(origItem)}`);
-      console.log(e.detail.changes);
-      let editedItem = {...origItem, ...e.detail.changes};
-      console.log(`edited update item: ${JSON.stringify(editedItem)}`);
-      this.items.set(editedItem.name, editedItem);
-      itemDB.update(origItem.name, editedItem);
-      if (editedItem.name !== origItem.name) {
-        this.items.delete(origItemName);
-      }
+    if (e.type == "save-edit") {
+      this.handleSaveEdit(e);
+    } else if (e.type == "cancel-edit") {
+      console.log("handling cancel edit request event");
       this.refreshView();
     }
+  }
+  handleTableEventClick(e) {
+    console.log("table click event got");
+    console.log(`event type: ${e.type}`);
+    console.log("event target:");
+    console.log(e.target);
     switch (e.target.dataset.actionType) {
       case DELETE_ITEM:
         this.handleDelete(e);
@@ -255,10 +269,6 @@ class App {
       case EDIT_ITEM: {
         this.handleEdit(e);
         break;
-      }
-      case "save-item": {
-        console.log("got save edit request");
-        this.handeSaveEdit(e);
       }
     }
   }
